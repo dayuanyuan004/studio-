@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Copy of 初稿 1.8修改",
+  "description": "移动端 Galbot 机器人动作编排与表演创作平台，支持动作模仿、语音演艺与即时操控。",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}

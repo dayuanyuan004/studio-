@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; overflow: hidden;">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Galbot Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Global Scrollbar Hiding */
+      *::-webkit-scrollbar {
+          display: none;
+          width: 0 !important;
+          height: 0 !important;
+          background: transparent;
+      }
+      
+      * {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+
+      body {
+        background-color: #000000;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+        color: white;
+        overscroll-behavior-y: none;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+      
+      #root {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* SIDEBAR CARD ANIMATION */
+      .sidebar-card-transition {
+        transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.5s ease;
+        will-change: transform;
+      }
+
+      .backdrop-transition {
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+        will-change: opacity;
+      }
+
+      /* REFINED PAGE TRANSITION */
+      @keyframes page-enter-smooth {
+        0% { opacity: 0; transform: scale(0.96); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+
+      .animate-page-enter {
+        animation: page-enter-smooth 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        will-change: transform, opacity;
+      }
+
+      /* DEVICE CAROUSEL ANIMATIONS */
+      @keyframes slide-next {
+        0% { opacity: 0; transform: translateX(100px); }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes slide-prev {
+        0% { opacity: 0; transform: translateX(-100px); }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      .anim-slide-next { animation: slide-next 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+      .anim-slide-prev { animation: slide-prev 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+      /* Robot Construction */
+      .robot-wrapper {
+        position: relative;
+        width: 140px;
+        height: 240px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transform-origin: bottom center;
+        will-change: transform, filter;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .robot-wrapper.is-offline {
+        filter: grayscale(100%) brightness(0.7);
+        opacity: 0.8;
+      }
+      .robot-wrapper.is-offline * {
+        animation: none !important;
+        box-shadow: none !important;
+      }
+      .robot-wrapper.is-offline .robot-eye {
+        background: #555 !important;
+        box-shadow: none !important;
+        height: 2px;
+      }
+      .robot-wrapper.is-offline .robot-core {
+        background: #333 !important;
+        box-shadow: none !important;
+      }
+
+      .robot-head {
+        width: 70px;
+        height: 55px;
+        background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+        border-radius: 16px;
+        position: relative;
+        z-index: 10;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 14px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.5);
+        transform-origin: center bottom;
+      }
+      
+      .robot-antenna {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        width: 4px;
+        height: 20px;
+        background: #94a3b8;
+        transform-origin: bottom center;
+        margin-left: -2px;
+      }
+      .robot-antenna::after {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 12px;
+        background: #22c55e;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #22c55e;
+        border: 1px solid rgba(255,255,255,0.8);
+      }
+
+      .robot-ear { position: absolute; width: 8px; height: 24px; background: #94a3b8; top: 15px; border-radius: 4px; }
+      .robot-ear.left { left: -6px; }
+      .robot-ear.right { right: -6px; }
+      .robot-eye { width: 12px; height: 4px; background: #3b82f6; border-radius: 2px; box-shadow: 0 0 8px #3b82f6; animation: blink 4s infinite; }
+      .robot-neck { width: 26px; height: 12px; background: #64748b; border-radius: 4px; margin-top: -2px; position: relative; z-index: 4; }
+      .robot-torso {
+        width: 90px;
+        height: 100px;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-radius: 18px 18px 26px 26px;
+        position: relative;
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.4);
+      }
+      .robot-chest-plate { width: 50px; height: 60px; background: rgba(255,255,255,0.5); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.6); }
+      .robot-core { width: 22px; height: 22px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); transition: all 0.3s; }
+
+      .robot-arm { position: absolute; top: 10px; width: 20px; height: 85px; background: linear-gradient(to bottom, #cbd5e1, #94a3b8); border-radius: 10px; transform-origin: top center; }
+      .robot-arm.left { left: -22px; }
+      .robot-arm.right { right: -22px; }
+      .robot-hand { position: absolute; bottom: -5px; left: -1px; width: 22px; height: 22px; background: #64748b; border-radius: 50%; }
+
+      .robot-leg { position: absolute; bottom: -75px; width: 24px; height: 80px; background: linear-gradient(to bottom, #cbd5e1, #94a3b8); border-radius: 8px; transform-origin: top center; }
+      .robot-leg.left { left: 16px; }
+      .robot-leg.right { right: 16px; }
+
+      /* --- ANIMATION KEYFRAMES --- */
+      @keyframes blink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+      @keyframes idle-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+      @keyframes core-pulse-green { 0%, 100% { box-shadow: 0 0 10px #22c55e; opacity: 0.8; } 50% { box-shadow: 0 0 25px #22c55e; opacity: 1; } }
+
+      /* Reusable Subtle Bounce for Bubble */
+      @keyframes bounce-subtle {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+      }
+      .animate-bounce-subtle {
+        animation: bounce-subtle 3s ease-in-out infinite;
+      }
+
+      /* Robust Iteration Control */
+      .robot-wrapper.play-once, .robot-wrapper.play-once * { animation-iteration-count: 1 !important; }
+      .robot-wrapper.play-triple, .robot-wrapper.play-triple * { animation-iteration-count: 3 !important; }
+      .robot-wrapper.play-loop, .robot-wrapper.play-loop * { animation-iteration-count: infinite !important; }
+
+      /* WAVE STYLE */
+      @keyframes wave-arm-l { 0%, 100% { transform: rotate(10deg); } 50% { transform: rotate(120deg); } }
+      @keyframes wave-arm-r { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(-120deg); } }
+      @keyframes wave-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+      .robot-wrapper.is-active.is-dancing-wave { animation: wave-sway 1.5s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-wave .robot-arm.left { animation: wave-arm-l 0.8s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-wave .robot-arm.right { animation: wave-arm-r 0.8s ease-in-out; }
+
+      /* GROOVE STYLE */
+      @keyframes groove-body { 0%, 100% { transform: translateX(-8px) rotate(-4deg); } 50% { transform: translateX(8px) rotate(4deg); } }
+      @keyframes groove-arm-l { 0%, 100% { transform: rotate(45deg); } 50% { transform: rotate(15deg); } }
+      @keyframes groove-arm-r { 0%, 100% { transform: rotate(-15deg); } 50% { transform: rotate(-45deg); } }
+      .robot-wrapper.is-active.is-dancing-groove { animation: groove-body 0.6s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-groove .robot-arm.left { animation: groove-arm-l 0.6s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-groove .robot-arm.right { animation: groove-arm-r 0.6s ease-in-out; }
+
+      /* CUTE STYLE */
+      @keyframes cute-arm-rotate-l { 0%, 100% { transform: rotate(15deg); } 50% { transform: rotate(45deg); } }
+      @keyframes cute-arm-rotate-r { 0%, 100% { transform: rotate(-15deg); } 50% { transform: rotate(-45deg); } }
+      @keyframes cute-head-tilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(8deg); } }
+      .robot-wrapper.is-active.is-dancing-cute .robot-head { animation: cute-head-tilt 0.6s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-cute .robot-arm.left { animation: cute-arm-rotate-l 0.6s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-cute .robot-arm.right { animation: cute-arm-rotate-r 0.6s ease-in-out; }
+
+      /* WILD STYLE */
+      @keyframes wild-arm-swing-l { 0%, 100% { transform: rotate(160deg); } 50% { transform: rotate(20deg); } }
+      @keyframes wild-arm-swing-r { 0%, 100% { transform: rotate(-20deg); } 50% { transform: rotate(-160deg); } }
+      @keyframes wild-leg-lift-l { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(50deg); } }
+      @keyframes wild-leg-lift-r { 0%, 100% { transform: rotate(30deg); } 50% { transform: rotate(0deg); } }
+      .robot-wrapper.is-active.is-dancing-wild .robot-arm.left { animation: wild-arm-swing-l 0.4s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-wild .robot-arm.right { animation: wild-arm-swing-r 0.4s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-wild .robot-leg.left { animation: wild-leg-lift-l 0.4s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-wild .robot-leg.right { animation: wild-leg-lift-r 0.4s ease-in-out; }
+
+      /* ELEGANT STYLE */
+      @keyframes elegant-wave-l { 0%, 100% { transform: rotate(10deg); } 50% { transform: rotate(90deg); } }
+      @keyframes elegant-sway-head { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+      .robot-wrapper.is-active.is-dancing-elegant .robot-arm.left { animation: elegant-wave-l 1.5s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-elegant .robot-head { animation: elegant-sway-head 1.5s ease-in-out; }
+
+      /* WEIRD STYLE (Sneaky) */
+      @keyframes weird-body-hunch { 0%, 100% { transform: rotate(6deg) translateX(8px); } 50% { transform: rotate(-2deg) translateX(-8px); } }
+      @keyframes weird-head-peep { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(15deg) skewX(2deg); } 70% { transform: rotate(-15deg) skewX(-2deg); } }
+      @keyframes weird-arm-jitter-l { 0%, 100% { transform: rotate(10deg); } 20% { transform: rotate(15deg); } 80% { transform: rotate(20deg); } }
+      @keyframes weird-arm-wave-r { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(-95deg) scaleY(1.05); } }
+      
+      .robot-wrapper.is-active.is-dancing-weird { animation: weird-body-hunch 1.2s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-weird .robot-head { animation: weird-head-peep 1.2s ease-in-out; }
+      .robot-wrapper.is-active.is-dancing-weird .robot-arm.left { animation: weird-arm-jitter-l 0.25s linear; }
+      .robot-wrapper.is-active.is-dancing-weird .robot-arm.right { animation: weird-arm-wave-r 1.2s cubic-bezier(0.5, 0, 0.5, 1); }
+
+      /* DEFAULT STATES */
+      .robot-wrapper.is-idle { animation: idle-bob 4s ease-in-out infinite; }
+      .robot-wrapper.is-active .robot-core { background: #22c55e; box-shadow: 0 0 20px #22c55e; animation: core-pulse-green 0.6s ease-in-out infinite; }
+      
+      /* SCANLINE FOR LOCKSCREEN */
+      @keyframes scan {
+        0% { top: 0%; opacity: 0; }
+        50% { opacity: 0.3; }
+        100% { top: 100%; opacity: 0; }
+      }
+      .scanline {
+          position: absolute;
+          width: 100%;
+          height: 100px;
+          background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.1), transparent);
+          animation: scan 4s linear infinite;
+          pointer-events: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
